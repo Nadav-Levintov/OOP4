@@ -37,79 +37,78 @@ public class OOPMultipleControl {
     //TODO: add more of your code :
     public List<Method> validateAux(Class<?> current) throws OOPMultipleException {
         Class[] hierarchyTree = current.getInterfaces();
+        /*check if this is the highest level in the current branch*/
         if (hierarchyTree.length == 0) {
             List<Method> methods = new LinkedList<Method>();
             Method[] methodArr = current.getMethods();
             for (Method aMethod : methodArr) {
-
-                if (!aMethod.isAnnotationPresent(OOPMethod.class)) {
-
-                    throw new OOPBadClass(aMethod);
-                }
+                checkAnnotations(aMethod);
                 methods.add(aMethod);
             }
             return methods;
         }
 
         List<Method> methodList = validateAux(hierarchyTree[0]);
-
+    /*check for functions declared in all of the parent levels*/
         for (int i = 1; i < hierarchyTree.length; i++) {
             List<Method> currentMethods = validateAux(hierarchyTree[i]);
             for (Method currentMethod : currentMethods) {
                 for (Method existingMethod : methodList) {
-                    if (currentMethod.getName().equals(existingMethod.getName())) {
-                        if (currentMethod.getDeclaringClass().equals(existingMethod.getDeclaringClass())) {
-                            throw new OOPInherentAmbiguity(interfaceClass, currentMethod.getDeclaringClass(), currentMethod);
-                        } else if (existingMethod.getDeclaringClass().isAssignableFrom(currentMethod.getDeclaringClass())) {
-                            OOPMethod currentA = currentMethod.getAnnotation(OOPMethod.class);
-                            OOPMethod existingA = existingMethod.getAnnotation(OOPMethod.class);
-                            if (Modifier.isFinal(existingMethod.getModifiers()) || currentA.modifier().ordinal() < existingA.modifier().ordinal()) {
-                                throw new OOPBadClass(currentMethod);
-                            }
-
-
-                        }
-
+                    if (methodCompare(existingMethod,currentMethod)) {
+                        checkInharent(existingMethod, currentMethod);
+                        checkAnnotationsPermission(existingMethod, currentMethod);
                     }
 
                 }
-                for (Method aMethod : currentMethods
-                        ) {
-                    methodList.add(aMethod);
-                }
-
             }
+            methodList.addAll(currentMethods);
         }
 
+        /*check for functions declared in current level*/
         Method[] currentMethods = current.getDeclaredMethods();
         for (Method currentMethod : currentMethods) {
             for (Method existingMethod : methodList) {
-                if (currentMethod.getName().equals(existingMethod.getName())) {
-                    if (currentMethod.getDeclaringClass().equals(existingMethod.getDeclaringClass())) {
-                        throw new OOPInherentAmbiguity(interfaceClass, currentMethod.getDeclaringClass(), currentMethod);
-                    } else if (existingMethod.getDeclaringClass().isAssignableFrom(currentMethod.getDeclaringClass())) {
-                        OOPMethod currentA = currentMethod.getAnnotation(OOPMethod.class);
-                        OOPMethod existingA = existingMethod.getAnnotation(OOPMethod.class);
-                        if (Modifier.isFinal(existingMethod.getModifiers()) || currentA.modifier().ordinal() < existingA.modifier().ordinal()) {
-                            throw new OOPBadClass(currentMethod);
-                        }
-
-
-                    }
-
+                if (methodCompare(existingMethod,currentMethod)) {
+                    checkInharent(existingMethod, currentMethod);
+                    checkAnnotationsPermission(existingMethod, currentMethod);
                 }
-
             }
-            for (Method aMethod : currentMethods
-                    ) {
-                methodList.add(aMethod);
-            }
-
         }
+        methodList.addAll(Arrays.asList(currentMethods));
+
+
         return methodList;
     }
 
+    public void checkAnnotations(Method aMethod) throws OOPBadClass {
+        if (!aMethod.isAnnotationPresent(OOPMethod.class)) {
 
+            throw new OOPBadClass(aMethod);
+        }
+    }
+
+    public void checkAnnotationsPermission(Method existingMethod, Method currentMethod) throws OOPBadClass {
+        if (existingMethod.getDeclaringClass().isAssignableFrom(currentMethod.getDeclaringClass())) {
+            OOPMethod currentA = currentMethod.getAnnotation(OOPMethod.class);
+            OOPMethod existingA = existingMethod.getAnnotation(OOPMethod.class);
+            if (Modifier.isFinal(existingMethod.getModifiers()) || currentA.modifier().ordinal() < existingA.modifier().ordinal()) {
+                throw new OOPBadClass(currentMethod);
+            }
+        }
+    }
+
+    public void checkInharent(Method existingMethod, Method currentMethod) throws OOPInherentAmbiguity {
+        if (currentMethod.getDeclaringClass().equals(existingMethod.getDeclaringClass())) {
+            throw new OOPInherentAmbiguity(interfaceClass, currentMethod.getDeclaringClass(), currentMethod);
+        }
+    }
+
+    public Boolean methodCompare(Method m1,Method m2)
+    {
+       return m1.getName().equals(m2.getName()) &&
+                Arrays.equals(m1.getParameterTypes(),m2.getParameterTypes())&&
+                m1.getReturnType().equals(m2.getReturnType());
+    }
     //TODO: DO NOT CHANGE !!!!!!
 
     public void removeSourceFile() {
