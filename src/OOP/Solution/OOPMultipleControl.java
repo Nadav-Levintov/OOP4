@@ -6,6 +6,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.*;
 
+
 public class OOPMultipleControl {
 
     //TODO: DO NOT CHANGE !!!!!!
@@ -39,7 +40,9 @@ public class OOPMultipleControl {
             List<Method> methods = new LinkedList<Method>();
             Method[] methodArr = current.getMethods();
             for (Method aMethod : methodArr) {
+
                 if (!aMethod.isAnnotationPresent(OOPMethod.class)) {
+
                     throw new OOPBadClass(aMethod);
                 }
                 methods.add(aMethod);
