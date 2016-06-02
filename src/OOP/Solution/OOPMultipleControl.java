@@ -4,6 +4,7 @@ import OOP.Provided.*;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 
@@ -50,19 +51,19 @@ public class OOPMultipleControl {
             return methods;
         }
 
-        List<Method> methodSet = validateAux(hierarchyTree[0]);
+        List<Method> methodList = validateAux(hierarchyTree[0]);
 
         for (int i = 1; i < hierarchyTree.length; i++) {
             List<Method> currentMethods = validateAux(hierarchyTree[i]);
             for (Method currentMethod : currentMethods) {
-                for (Method existingMethod : methodSet) {
+                for (Method existingMethod : methodList) {
                     if (currentMethod.getName().equals(existingMethod.getName())) {
                         if (currentMethod.getDeclaringClass().equals(existingMethod.getDeclaringClass())) {
                             throw new OOPInherentAmbiguity(interfaceClass, currentMethod.getDeclaringClass(), currentMethod);
-                        } else if (currentMethod.getDeclaringClass().isAssignableFrom(existingMethod.getDeclaringClass())) {
+                        } else if (existingMethod.getDeclaringClass().isAssignableFrom(currentMethod.getDeclaringClass())) {
                             OOPMethod currentA = currentMethod.getAnnotation(OOPMethod.class);
-                            OOPMethod existingA = currentMethod.getAnnotation(OOPMethod.class);
-                            if (currentA.modifier().ordinal() < existingA.modifier().ordinal()) {
+                            OOPMethod existingA = existingMethod.getAnnotation(OOPMethod.class);
+                            if (Modifier.isFinal(existingMethod.getModifiers()) || currentA.modifier().ordinal() < existingA.modifier().ordinal()) {
                                 throw new OOPBadClass(currentMethod);
                             }
 
@@ -74,7 +75,7 @@ public class OOPMultipleControl {
                 }
                 for (Method aMethod : currentMethods
                         ) {
-                    methodSet.add(aMethod);
+                    methodList.add(aMethod);
                 }
 
             }
@@ -82,14 +83,14 @@ public class OOPMultipleControl {
 
         Method[] currentMethods = current.getDeclaredMethods();
         for (Method currentMethod : currentMethods) {
-            for (Method existingMethod : methodSet) {
+            for (Method existingMethod : methodList) {
                 if (currentMethod.getName().equals(existingMethod.getName())) {
                     if (currentMethod.getDeclaringClass().equals(existingMethod.getDeclaringClass())) {
                         throw new OOPInherentAmbiguity(interfaceClass, currentMethod.getDeclaringClass(), currentMethod);
                     } else if (existingMethod.getDeclaringClass().isAssignableFrom(currentMethod.getDeclaringClass())) {
                         OOPMethod currentA = currentMethod.getAnnotation(OOPMethod.class);
                         OOPMethod existingA = existingMethod.getAnnotation(OOPMethod.class);
-                        if (currentA.modifier().ordinal() < existingA.modifier().ordinal()) {
+                        if (Modifier.isFinal(existingMethod.getModifiers()) || currentA.modifier().ordinal() < existingA.modifier().ordinal()) {
                             throw new OOPBadClass(currentMethod);
                         }
 
@@ -101,11 +102,11 @@ public class OOPMultipleControl {
             }
             for (Method aMethod : currentMethods
                     ) {
-                methodSet.add(aMethod);
+                methodList.add(aMethod);
             }
 
         }
-        return methodSet;
+        return methodList;
     }
 
 
