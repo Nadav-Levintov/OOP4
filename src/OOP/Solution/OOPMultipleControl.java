@@ -79,6 +79,32 @@ public class OOPMultipleControl {
 
             }
         }
+
+        Method[] currentMethods = current.getDeclaredMethods();
+        for (Method currentMethod : currentMethods) {
+            for (Method existingMethod : methodSet) {
+                if (currentMethod.getName().equals(existingMethod.getName())) {
+                    if (currentMethod.getDeclaringClass().equals(existingMethod.getDeclaringClass())) {
+                        throw new OOPInherentAmbiguity(interfaceClass, currentMethod.getDeclaringClass(), currentMethod);
+                    } else if (existingMethod.getDeclaringClass().isAssignableFrom(currentMethod.getDeclaringClass())) {
+                        OOPMethod currentA = currentMethod.getAnnotation(OOPMethod.class);
+                        OOPMethod existingA = existingMethod.getAnnotation(OOPMethod.class);
+                        if (currentA.modifier().ordinal() < existingA.modifier().ordinal()) {
+                            throw new OOPBadClass(currentMethod);
+                        }
+
+
+                    }
+
+                }
+
+            }
+            for (Method aMethod : currentMethods
+                    ) {
+                methodSet.add(aMethod);
+            }
+
+        }
         return methodSet;
     }
 
